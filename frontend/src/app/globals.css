@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+
+  --color-primary: #1B3B36;
+  /* Deep forest green extracted from Figma */
+  --color-primary-hover: #142E2A;
+  --color-secondary: #FFF8EE;
+  /* Soft cream/beige background from Figma */
+  --color-background: #ffffff;
+  --color-foreground: #1B3B36;
+  /* Text matches the primary deep green */
+
+  --color-status-pending: #f59e0b;
+  --color-status-preparing: #3b82f6;
+  --color-status-ready: #8b5cf6;
+  --color-status-completed: #1B3B36;
+
+  --radius-xl: 0.75rem;
+  /* Figma uses slightly sharper borders on inputs */
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  --shadow-soft: 0 4px 20px -2px rgba(27, 59, 54, 0.08);
+  /* Shadow tinted with primary color */
+  --shadow-hover: 0 10px 30px -5px rgba(27, 59, 54, 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    @apply font-sans antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif font-bold text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-soft;
+  }
+}

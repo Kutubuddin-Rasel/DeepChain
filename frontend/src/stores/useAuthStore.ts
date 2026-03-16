@@ -30,6 +30,11 @@ const createAuthStore: StateCreator<AuthState> = (set) => ({
     Cookies.remove("token");
     Cookies.remove("user");
     set({ token: null, user: null });
+    // Force a full reload to clear any cached data from the Next.js App Router cache.
+    // This reliably resets all UI components (e.g. Navbar) universally to their unauthenticated state.
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth?mode=login";
+    }
   },
 });
 

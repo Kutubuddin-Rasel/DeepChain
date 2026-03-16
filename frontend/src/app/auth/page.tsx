@@ -46,11 +46,13 @@ function AuthForm() {
         toast.success("Welcome back!");
       }
 
-      // Redirect after auth (fallback to home)
+      // Redirect after auth (fallback to home) using a hard navigation
+      // This forces Next.js to reload the page, fully resetting its client-side router cache
+      // and ensuring cookies are correctly passed to all Server Components and AuthBootstrap.
       if (userRole === "ADMIN" && redirectTo === "/") {
-        router.push("/admin/menu-items");
+        window.location.href = "/admin/menu-items";
       } else {
-        router.push(redirectTo);
+        window.location.href = redirectTo;
       }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {

@@ -11,7 +11,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit() {
     try {
-      const redisUrl = this.configService.get<string>('REDIS_URL');
+      const redisUrl = this.configService.getOrThrow<string>('REDIS_URL');
       this.redis = new Redis(redisUrl, {
         tls: {
           rejectUnauthorized: false,

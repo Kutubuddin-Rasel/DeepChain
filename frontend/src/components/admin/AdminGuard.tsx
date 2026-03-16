@@ -27,7 +27,10 @@ export function AdminGuard({ children }: AdminGuardProps) {
   }, []);
 
   useEffect(() => {
-    // Wait until hydration is finished and AuthBootstrap has properly loaded Cookies
+    // Wait until the DOM has hydrated AND AuthBootstrap has finished
+    // its async /auth/me verification before making any redirect decision.
+    // Without this guard, AdminGuard sees user=null during the network
+    // round-trip and incorrectly redirects admins to the customer homepage.
     if (!hydrated || isLoading) return;
 
     if (!token || !user) {
@@ -42,7 +45,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     }
   }, [hydrated, isLoading, token, user, router]);
 
-  // While hydrating, loading auth state, or about to redirect, show nothing (or a subtle spinner)
+  // While hydrating or about to redirect, show nothing (or a subtle spinner)
   if (!hydrated || isLoading || !token || !user || user.role !== "ADMIN") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FBF7F2]">

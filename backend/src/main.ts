@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
@@ -7,6 +7,7 @@ import { AllExceptionFilter } from './common/filters/all-exceptions.filter';
 import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
+  const logger = new Logger('Main');
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
@@ -15,9 +16,9 @@ async function bootstrap() {
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.url.includes('/menu-items')) {
-      console.log(`[REQ] ${req.method} ${req.url}`);
-      console.log('HEADERS:', req.headers);
-      console.log('BODY:', req.body);
+      logger.log(`[REQ] ${req.method} ${req.url}`);
+      logger.log('HEADERS:', req.headers);
+      logger.log('BODY:', req.body);
     }
     next();
   });
@@ -49,8 +50,8 @@ async function bootstrap() {
   });
 
   const port = configService.get<number>('PORT') ?? 3000;
-  await app.listen(port);
-  console.log(`🍽️  Foodio API running on port ${port}`);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Foodio API running on port ${port}`);
 }
 
 bootstrap();

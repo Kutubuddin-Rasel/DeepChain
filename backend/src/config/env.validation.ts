@@ -18,16 +18,14 @@ class EnvironmentVariables {
   NODE_ENV: Environment = Environment.Development;
 
   @IsNumber()
-  PORT: number = 3001;
+  @IsOptional()
+  PORT: number;
 
   @IsString()
   DATABASE_URL: string;
 
   @IsString()
-  REDIS_HOST: string;
-
-  @IsNumber()
-  REDIS_PORT: number;
+  REDIS_URL: string;
 
   @IsString()
   ACCESS_TOKEN_SECRET: string;

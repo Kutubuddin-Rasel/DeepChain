@@ -9,13 +9,13 @@ import { MenuItem, Category } from "@/types";
 import { FoodCard } from "@/components/ui/FoodCard";
 import { Button } from "@/components/ui/Button";
 
-// 1. We extract all the logic that uses search parameters into an internal component
 function MenuContent() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
+  // Client-side filtering state
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"newest" | "price_asc" | "price_desc">("newest");
@@ -26,7 +26,7 @@ function MenuContent() {
     const fetchData = async () => {
       try {
         const [itemsRes, catsRes] = await Promise.all([
-          menuService.list({ limit: 100 }),
+          menuService.list({ limit: 100 }), // Large limit to enable smooth client-side filtering
           categoriesService.list(),
         ]);
         setItems(itemsRes.data);
@@ -57,13 +57,16 @@ function MenuContent() {
     setActiveCategory(byId?.id ?? bySlug?.id ?? "all");
   }, [searchParams, categories]);
 
+  // Derived state for filtered and sorted items
   const filteredItems = useMemo(() => {
     let result = [...items];
 
+    // Filter by category
     if (activeCategory !== "all") {
       result = result.filter(item => item.categoryId === activeCategory);
     }
 
+    // Filter by search
     if (deferredSearchQuery.trim()) {
       const q = deferredSearchQuery.toLowerCase();
       result = result.filter(item =>
@@ -72,13 +75,16 @@ function MenuContent() {
       );
     }
 
+    // Filter by availability
     if (availabilityFilter === "available") {
       result = result.filter(item => item.available);
     }
 
+    // Sort
     result.sort((a, b) => {
       if (sortBy === "price_asc") return a.price - b.price;
       if (sortBy === "price_desc") return b.price - a.price;
+      // newest (default fallback based on array order)
       return 0;
     });
 
@@ -86,7 +92,14 @@ function MenuContent() {
   }, [items, activeCategory, deferredSearchQuery, availabilityFilter, sortBy]);
 
   return (
-    <>
+    <div className="mx-auto w-full max-w-300 px-6 py-12 flex-1">
+      <div className="mb-10 text-center">
+        <h1 className="font-serif text-4xl font-bold text-foreground">Our Menu</h1>
+        <p className="text-foreground/60 text-base mt-1">
+          Discover our selection of premium dishes, crafted with passion.
+        </p>
+      </div>
+
       <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
         {/* Category Tabs */}
         <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2 md:pb-0 hide-scrollbar w-full md:w-auto">
@@ -168,7 +181,16 @@ function MenuContent() {
       </div>
 
       {isLoading ? (
-        <MenuSkeleton />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-20 pt-12">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="animate-pulse flex flex-col rounded-2xl bg-white p-4 shadow-soft h-95">
+              <div className="h-48 w-full bg-secondary rounded-xl mb-4"></div>
+              <div className="h-6 w-3/4 bg-secondary rounded-md mb-2"></div>
+              <div className="h-4 w-full bg-secondary rounded-md mb-4"></div>
+              <div className="h-10 w-full bg-secondary rounded-xl mt-auto"></div>
+            </div>
+          ))}
+        </div>
       ) : filteredItems.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-20 pt-12">
           {filteredItems.map((item) => (
@@ -189,41 +211,18 @@ function MenuContent() {
           </Button>
         </div>
       )}
-    </>
-  );
-}
-
-// 2. A reusable skeleton component for both the Suspense fallback and the loading state
-function MenuSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-20 pt-12">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-        <div key={i} className="animate-pulse flex flex-col rounded-2xl bg-white p-4 shadow-soft h-95">
-          <div className="h-48 w-full bg-secondary rounded-xl mb-4"></div>
-          <div className="h-6 w-3/4 bg-secondary rounded-md mb-2"></div>
-          <div className="h-4 w-full bg-secondary rounded-md mb-4"></div>
-          <div className="h-10 w-full bg-secondary rounded-xl mt-auto"></div>
-        </div>
-      ))}
     </div>
   );
 }
 
-// 3. The main page export now safely wraps the dynamic content in a Suspense boundary
 export default function MenuPage() {
   return (
-    <div className="mx-auto w-full max-w-300 px-6 py-12 flex-1">
-      {/* This header is static, so it renders instantly on the server! */}
-      <div className="mb-10 text-center">
-        <h1 className="font-serif text-4xl font-bold text-foreground">Our Menu</h1>
-        <p className="text-foreground/60 text-base mt-1">
-          Discover our selection of premium dishes, crafted with passion.
-        </p>
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center p-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
       </div>
-
-      <Suspense fallback={<MenuSkeleton />}>
-        <MenuContent />
-      </Suspense>
-    </div>
+    }>
+      <MenuContent />
+    </Suspense>
   );
 }

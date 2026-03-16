@@ -15,7 +15,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       this.redis = new Redis(redisUrl, {
         tls: {
           rejectUnauthorized: false,
-        }
+        },
+        enableReadyCheck: false,
+        maxRetriesPerRequest: null,
       });
 
       this.redis.on('error', (error) => {
@@ -89,8 +91,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         result = await this.redis.set(key, data);
       }
       return result === 'OK';
-    } catch {
-      console.warn('Error setting cache');
+    } catch (error) {
+      console.warn('Error setting cache', error);
       return false;
     }
   }

@@ -12,10 +12,11 @@ interface AdminGuardProps {
 
 export function AdminGuard({ children }: AdminGuardProps) {
   const router = useRouter();
-  const { token, user } = useAuthStore(
+  const { token, user, isLoading } = useAuthStore(
     useShallow((state: AuthState) => ({
       token: state.token,
       user: state.user,
+      isLoading: state.isLoading,
     }))
   );
   // Wait one tick for Zustand to rehydrate from localStorage before redirecting
@@ -26,7 +27,8 @@ export function AdminGuard({ children }: AdminGuardProps) {
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    // Wait until hydration is finished and AuthBootstrap has properly loaded Cookies
+    if (!hydrated || isLoading) return;
 
     if (!token || !user) {
       // Not logged in — send to login page, then redirect back to admin after login
@@ -38,10 +40,10 @@ export function AdminGuard({ children }: AdminGuardProps) {
       toast.error("Access denied. Admin only.");
       router.replace("/");
     }
-  }, [hydrated, token, user, router]);
+  }, [hydrated, isLoading, token, user, router]);
 
-  // While hydrating or about to redirect, show nothing (or a subtle spinner)
-  if (!hydrated || !token || !user || user.role !== "ADMIN") {
+  // While hydrating, loading auth state, or about to redirect, show nothing (or a subtle spinner)
+  if (!hydrated || isLoading || !token || !user || user.role !== "ADMIN") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#FBF7F2]">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />

@@ -37,48 +37,20 @@ To run this project locally, ensure you have the following installed:
 * **PostgreSQL Database** (e.g., via [Render](https://render.com/))
 * **Redis Instance** (e.g., via [Upstash](https://upstash.com/))
 
-## Local Environment Setup
+## Local Environment Setup & Running the System
 
-1. **Clone the repository**
-   ```bash
-   git clone [Your Repository URL]
-   cd Deepchain
-   ```
+Follow these step-by-step instructions to get the application running on your local machine.
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   npm install
-   ```
+### 1. Clone the repository
+```bash
+git clone [ Repository URL]
+cd Deepchain
+```
 
-3. **Frontend Setup**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
+### 2. Configure Environment Variables
+Create a `.env` file in the `backend` directory and a `.env.local` file in the `frontend` directory.
 
-4. **Start the Development Servers**
-   Open two separate terminals:
-
-   *Terminal 1 (Backend):*
-   ```bash
-   cd backend
-   npm run start:dev
-   ```
-
-   *Terminal 2 (Frontend):*
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-   The backend will be available at `http://localhost:4259` (or `3000` depending on env config) and the frontend at `http://localhost:3000`.
-
-## Environment Variables
-
-Create a `.env` file in the `backend` directory and a `.env.local` file in the `frontend` directory. 
-
-### Backend (`backend/.env`)
-
+**Backend (`backend/.env`):**
 | Variable | Description | Example / Placeholder |
 |----------|-------------|-----------------------|
 | `NODE_ENV` | Application environment | `development` |
@@ -88,8 +60,10 @@ Create a `.env` file in the `backend` directory and a `.env.local` file in the `
 | `DATABASE_PASSWORD` | Database password | `your_secure_password` |
 | `DATABASE_NAME` | Database name | `foodio_db` |
 | `DATABASE_PORT` | Database exposed port | `5932` |
-| `DATABASE_URL` | Full Prisma connection string | `postgresql://user:pass@localhost:5932/foodio_db?schema=public` |
-| `REDIS_URL` | Redis connection URL | `redis://default:password@localhost:6379` |
+| `DATABASE_URL` | Full Prisma connection string | `postgresql://user:password@localhost:5932/foodio_db?schema=public` |
+| `REDIS_PASSWORD` | Redis password (for Docker) | `your_redis_password` |
+| `REDIS_PORT` | Redis exposed port (for Docker) | `6379` |
+| `REDIS_URL` | Redis connection URL | `redis://:your_redis_password@localhost:6379` |
 | `ACCESS_TOKEN_SECRET` | Secret for JWT access tokens | `your_access_secret` |
 | `ACCESS_TOKEN_EXPIRY` | Access token lifespan | `10m` |
 | `REFRESH_TOKEN_SECRET`| Secret for JWT refresh tokens | `your_refresh_secret` |
@@ -99,26 +73,64 @@ Create a `.env` file in the `backend` directory and a `.env.local` file in the `
 | `CLOUDINARY_API_SECRET`| Cloudinary API secret | `your_api_secret` |
 | `FRONTEND_URL` | Allowed CORS origin | `http://localhost:3000` |
 
-### Frontend (`frontend/.env.local`)
+*Note: The `docker-compose.yml` uses these variables to boot the database and Redis containers.*
 
+**Frontend (`frontend/.env.local`):**
 | Variable | Description | Example / Placeholder |
 |----------|-------------|-----------------------|
 | `PORT` | Frontend server port | `3001` |
 | `NEXT_PUBLIC_API_URL` | Base URL for the backend API | `http://localhost:4259/api/v1` |
 
-## Database Setup
+### 3. Start Infrastructure (Postgres & Redis)
 
-Once your environment variables are configured with your remote PostgreSQL and Redis credentials, you need to apply the schema and seed the database with initial data.
+You have two options for the database and cache layer.
 
-Run the following commands from the `backend` directory:
-
+#### Option A: Local Docker (Recommended for Testing)
+Ensure Docker is installed and running on your machine. Start the necessary services using Docker Compose from the root directory:
 ```bash
-# Apply migrations / sync schema
+docker compose up -d
+```
+*This will spin up local instances of PostgreSQL and Redis. If you use this option, use the local URLs provided in the `.env` examples above.*
+
+#### Option B: Connect to the Live Cloud Database
+If you prefer to connect to the deployed PostgreSQL database (Render) and Redis instance (Upstash) to see the live data, update your `backend/.env` with the following connection strings instead of the local ones:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | `[Provided Render connection string]` |
+| `REDIS_URL` | `[Provided Upstash connection string]` |
+
+*(Note to reviewers: Feel free to use either the `docker-compose` setup or the live credentials provided during the submission).*
+
+### 4. Backend Setup & Seeding the Database
+Install dependencies, synchronize your Prisma database schema, seed the initial database configuration, and start the development server.
+
+Open a terminal and run:
+```bash
+cd backend
+npm install
+
+# Apply migrations and sync database schema (Skip if using Option B / Live DB)
 npx prisma db push
 
-# Seed the database
+# Seed the database with initial data (Skip if using Option B / Live DB)
 npm run seed
+
+# Start the NestJS backend API server
+npm run start:dev
 ```
+The backend API will be running at `http://localhost:4259` (or the port you defined in your `.env`).
+
+### 5. Frontend Setup
+In a separate terminal, install dependencies and start the Next.js frontend UI.
+```bash
+cd frontend
+npm install
+
+# Start the frontend Next.js server
+npm run dev
+```
+The frontend will be available at `http://localhost:3000` (or `3001` based on your port configuration).
 
 ## Available Scripts
 

@@ -1,21 +1,42 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCartStore, CartState } from "@/stores/useCartStore";
+import { useAuthStore, AuthState } from "@/stores/useAuthStore";
+import type { CartItem } from "@/types";
+import { useShallow } from "zustand/shallow";
 import axios from "axios";
-import { api } from "@/lib/axios";
+import { ordersService } from "@/services/orders.service";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export function CartDrawer() {
   const router = useRouter();
-  const { isCartOpen, closeCart, items, updateQuantity, removeFromCart, totalPrice, clearCart } = useCart();
-  const { user, isAuthenticated } = useAuth();
+  const { isCartOpen, closeCart, items, updateQuantity, removeFromCart, clearCart } = useCartStore(
+    useShallow((state: CartState) => ({
+      isCartOpen: state.isCartOpen,
+      closeCart: state.closeCart,
+      items: state.items,
+      updateQuantity: state.updateQuantity,
+      removeFromCart: state.removeFromCart,
+      clearCart: state.clearCart,
+    }))
+  );
+  const totalPrice = useMemo(
+    () => items.reduce((sum: number, item: CartItem) => sum + item.menuItem.price * item.quantity, 0),
+    [items]
+  );
+  const { user, token } = useAuthStore(
+    useShallow((state: AuthState) => ({
+      user: state.user,
+      token: state.token,
+    }))
+  );
+  const isAuthenticated = !!token && !!user;
   
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [address, setAddress] = useState("");
@@ -50,15 +71,13 @@ export function CartDrawer() {
     setIsPlacingOrder(true);
 
     try {
-      const orderData = {
-        deliveryAddress: address,
-        items: items.map(item => ({
+      await ordersService.createOrder({
+        address,
+        items: items.map((item: CartItem) => ({
           menuItemId: item.menuItem.id,
-          quantity: item.quantity
-        }))
-      };
-
-      await api.post("/orders", orderData);
+          quantity: item.quantity,
+        })),
+      });
       
       toast.success("Order placed successfully!");
       clearCart();
@@ -95,7 +114,7 @@ export function CartDrawer() {
           </div>
           <button 
             onClick={closeCart}
-            className="rounded-full p-2 text-foreground/40 hover:bg-secondary hover:text-foreground transition-colors"
+            className="cursor-pointer rounded-full p-2 text-foreground/40 hover:bg-secondary hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -113,7 +132,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {items.map((item) => (
+              {items.map((item: CartItem) => (
                 <div key={item.menuItem.id} className="flex gap-4 rounded-2xl bg-white p-4 shadow-sm border border-foreground/5">
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-foreground/5 bg-secondary">
                     <Image
@@ -129,7 +148,7 @@ export function CartDrawer() {
                       <h4 className="font-semibold text-foreground line-clamp-1">{item.menuItem.name}</h4>
                       <button 
                         onClick={() => removeFromCart(item.menuItem.id)}
-                        className="text-foreground/40 hover:text-red-500 transition-colors"
+                        className="cursor-pointer text-foreground/40 hover:text-red-500 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -143,14 +162,14 @@ export function CartDrawer() {
                       <div className="flex items-center gap-3 rounded-full bg-secondary px-3 py-1">
                         <button 
                           onClick={() => updateQuantity(item.menuItem.id, item.quantity - 1)}
-                          className="text-foreground hover:text-primary transition-colors disabled:opacity-50"
+                          className="cursor-pointer text-foreground hover:text-primary transition-colors disabled:opacity-50"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
                         <span className="text-sm font-semibold w-4 text-center select-none">{item.quantity}</span>
                         <button 
                           onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
-                          className="text-foreground hover:text-primary transition-colors"
+                          className="cursor-pointer text-foreground hover:text-primary transition-colors"
                         >
                           <Plus className="h-3 w-3" />
                         </button>

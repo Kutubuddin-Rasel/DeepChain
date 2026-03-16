@@ -27,18 +27,18 @@ const FOOD_IMAGES: Record<string, string[]> = {
 };
 
 async function main(): Promise<void> {
-  console.log('🌱 Starting Foodio seed...\n');
+  console.log('Starting Foodio seed...\n');
 
   // ──────────────────────────────────────────────
   // 1. Clear existing data (order matters for FKs)
   // ──────────────────────────────────────────────
-  console.log('🗑️  Clearing existing data...');
+  console.log('Clearing existing data...');
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.menuItem.deleteMany();
   await prisma.category.deleteMany();
   await prisma.user.deleteMany();
-  console.log('   ✅ All tables cleared\n');
+  console.log('All tables cleared\n');
 
   // ──────────────────────────────────────────────
   // 2. Seed Users
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
       role: Role.ADMIN,
     },
   });
-  console.log(`   ✅ Admin: ${admin.email} (password: admin123)`);
+  console.log(`Admin: ${admin.email} (password: admin123)`);
 
   const testUser = await prisma.user.create({
     data: {
@@ -77,12 +77,12 @@ async function main(): Promise<void> {
       role: Role.USER,
     },
   });
-  console.log(`   ✅ User:  ${testUser.email} (password: user123)\n`);
+  console.log(`User:  ${testUser.email} (password: user123)\n`);
 
   // ──────────────────────────────────────────────
   // 3. Seed Categories
   // ──────────────────────────────────────────────
-  console.log('📂 Creating categories...');
+  console.log('Creating categories...');
   const starters = await prisma.category.create({
     data: { name: 'Starters' },
   });
@@ -92,12 +92,12 @@ async function main(): Promise<void> {
   const desserts = await prisma.category.create({
     data: { name: 'Desserts' },
   });
-  console.log(`   ✅ ${starters.name}, ${mainCourses.name}, ${desserts.name}\n`);
+  console.log(`  ${starters.name}, ${mainCourses.name}, ${desserts.name}\n`);
 
   // ──────────────────────────────────────────────
   // 4. Seed Menu Items
   // ──────────────────────────────────────────────
-  console.log('🍽️  Creating menu items...');
+  console.log('Creating menu items...');
 
   const menuItemsData = [
     {
@@ -182,7 +182,7 @@ async function main(): Promise<void> {
   // ──────────────────────────────────────────────
   // 5. Seed Sample Orders
   // ──────────────────────────────────────────────
-  console.log('📦 Creating sample orders...');
+  console.log('Creating sample orders...');
 
   // Order 1: Completed order
   const order1 = await prisma.order.create({
@@ -215,7 +215,7 @@ async function main(): Promise<void> {
       },
     },
   });
-  console.log(`   ✅ Order #1 (${order1.status}): $${order1.totalAmount}`);
+  console.log(`Order #1 (${order1.status}): $${order1.totalAmount}`);
 
   // Order 2: Pending order
   const order2 = await prisma.order.create({
@@ -236,7 +236,7 @@ async function main(): Promise<void> {
       },
     },
   });
-  console.log(`   ✅ Order #2 (${order2.status}): $${order2.totalAmount}\n`);
+  console.log(`Order #2 (${order2.status}): $${order2.totalAmount}\n`);
 
   // ──────────────────────────────────────────────
   // Summary
@@ -261,7 +261,7 @@ async function main(): Promise<void> {
 
 main()
   .catch((error: Error) => {
-    console.error('❌ Seed failed:', error.message);
+    console.error('Seed failed:', error.message);
     process.exit(1);
   })
   .finally(async () => {

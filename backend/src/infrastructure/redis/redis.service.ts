@@ -108,4 +108,22 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return false;
     }
   }
+
+  async delPattern(pattern: string): Promise<boolean> {
+    if (!this.isConnected) {
+      console.warn('Redis is not connected');
+      return false;
+    }
+
+    try {
+      const keys = await this.redis.keys(pattern);
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+      }
+      return true;
+    } catch {
+      console.warn('Error deleting cache by pattern');
+      return false;
+    }
+  }
 }

@@ -8,6 +8,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateMenuItemDto {
   @IsNotEmpty({ message: 'Item name is required' })
@@ -30,6 +31,18 @@ export class CreateMenuItemDto {
   readonly categoryId: string;
 
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined) return undefined;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      return value.toLowerCase() === 'true' || value === '1';
+    }
+    if (typeof value === 'number') return value === 1;
+    return Boolean(value);
+  })
   @IsBoolean()
   readonly available?: boolean;
+
+  @IsOptional()
+  readonly image?: any;
 }

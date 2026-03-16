@@ -5,6 +5,12 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Add your custom rule overrides here
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error", // Change to "warn" if you don't want it to fail builds immediately
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

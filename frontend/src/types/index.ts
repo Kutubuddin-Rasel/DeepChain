@@ -1,5 +1,5 @@
 export type Role = 'USER' | 'ADMIN';
-export type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'PREPARING' | 'READY' | 'COMPLETED';
 
 export interface User {
   id: string;
@@ -7,8 +7,10 @@ export interface User {
   email: string;
   address: string;
   role: Role;
-  createdAt: string;
+  createdAt?: string;
 }
+
+export type AuthUser = Pick<User, "id" | "name" | "email" | "address" | "role">;
 
 export interface Category {
   id: string;
@@ -36,6 +38,12 @@ export interface MenuItem {
   updatedAt: string;
 }
 
+export interface MenuItemSummary {
+  id: string;
+  name: string;
+  image: string;
+}
+
 export interface OrderItem {
   id: string;
   orderId: string;
@@ -44,7 +52,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   createdAt: string;
-  menuItem?: MenuItem;
+  menuItem?: MenuItemSummary;
 }
 
 export interface Order {
@@ -66,4 +74,14 @@ export interface Order {
 export interface CartItem {
   menuItem: MenuItem;
   quantity: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

@@ -233,6 +233,6 @@ export class MenuItemsService {
   }
 
   private async invalidateCache(): Promise<void> {
-    await this.redisService.del(`${MENU_ITEMS_CACHE_PREFIX}*`);
+    await this.redisService.delPattern(`${MENU_ITEMS_CACHE_PREFIX}*`);
   }
 }

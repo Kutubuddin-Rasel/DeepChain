@@ -8,6 +8,9 @@ export interface AuthUser {
 export interface SafeUser extends TokensResponse {
   user: AuthUser;
 }
+export interface RegisterLoginResponse extends TokenResponse {
+  user: AuthUser;
+}
 export interface MessageResponse {
   readonly message: string;
 }

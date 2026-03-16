@@ -1,83 +1,116 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { UtensilsCrossed, Coffee, CakeSlice, Clock, FileText } from "lucide-react";
+import {
+  Utensils,
+  ChefHat,
+  CakeSlice,
+  FileText,
+  Flame,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { FoodCard } from "@/components/ui/FoodCard";
-import { api } from "@/lib/axios";
-import { MenuItem } from "@/types";
+import { LandingFoodCard } from "@/components/ui/LandingFoodCard";
+import {
+  landingCategories,
+  landingItems,
+  LandingCategory,
+} from "@/lib/landingFixtures";
 
 export default function Home() {
-  const [popularItems, setPopularItems] = useState<MenuItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>(
+    landingCategories[0]?.id ?? "starters"
+  );
+  const [cardsVisible, setCardsVisible] = useState(true);
+  const menuSectionRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const fetchPopularItems = async () => {
-      try {
-         // Sort by some criteria if available, for now just fetch a limit
-        const res = await api.get('/menu-items?limit=8');
-        setPopularItems(res.data.data);
-      } catch (error) {
-        console.error("Failed to fetch popular items", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const visibleItems = useMemo(() => {
+    return landingItems.filter((item) => item.categoryId === activeCategory).slice(0, 4);
+  }, [activeCategory]);
 
-    fetchPopularItems();
-  }, []);
+  const categoryIcons = [Utensils, ChefHat, CakeSlice];
+  const handleCategoryPick = useCallback((categoryId: string) => {
+    if (categoryId === activeCategory) return;
+    // Fade out
+    setCardsVisible(false);
+    setTimeout(() => {
+      setActiveCategory(categoryId);
+      setCardsVisible(true);
+    }, 180);
+    menuSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [activeCategory]);
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white px-4 py-20 sm:px-6 lg:px-8 xl:py-32">
-        {/* Giant Figma-style background circle */}
-        <div className="absolute right-0 top-0 h-[800px] w-[800px] -translate-y-[10%] translate-x-[20%] rounded-full bg-secondary hidden lg:block" />
-        
-        <div className="container relative mx-auto max-w-7xl z-10">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-8 items-center">
-            <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-1.5 mb-6 text-sm font-semibold text-foreground border border-foreground/5 shadow-sm">
-                <FileText className="h-4 w-4" />
+    <div className="flex flex-col font-landing text-forest bg-white">
+      {/* Hero Section — split layout: left white, right cream full-bleed */}
+      <section
+        className="relative"
+        style={{ background: "linear-gradient(to right, #ffffff 50%, #f5f0e0 50%)" }}
+      >
+
+        <div className="relative mx-auto w-full max-w-310 px-6 md:px-10">
+          <div className="flex flex-col lg:flex-row min-h-120">
+            {/* Left — content */}
+            <div className="flex w-full flex-col justify-center lg:w-1/2 py-14 lg:py-20 lg:pr-12">
+              <div className="inline-flex w-fit items-center gap-2 rounded-md bg-[#ede9df] px-3 py-1.5 text-[11px] font-semibold text-forest">
+                <FileText className="h-3 w-3" />
                 <span>Food Ordering Service</span>
               </div>
-              <h1 className="font-serif text-5xl font-bold tracking-tight text-foreground sm:text-6xl md:text-7xl mb-6 leading-[1.1]">
+              <h1 className="mt-5 font-serif text-[52px] font-extrabold leading-[1.08] text-forest">
                 Where Great Food
                 <br />
-                Meets <span className="font-serif italic font-normal text-primary">Great Taste.</span>
+                Meets <span className="font-serif italic font-normal">Great Taste.</span>
               </h1>
-              <p className="text-lg text-foreground/70 mb-8 max-w-lg leading-relaxed">
+              <p className="mt-4 max-w-[320px] text-[15px] leading-relaxed text-forest/65">
                 Experience a symphony of flavors crafted with passion. Premium ingredients, exquisite recipes, delivered to your door.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="mt-8">
                 <Link href="/menu">
-                  <Button size="lg" className="rounded-full px-8 bg-primary hover:bg-primary-hover">
+                  <Button
+                    size="sm"
+                    className="h-10 rounded-full px-6 text-[13px] font-semibold bg-primary hover:bg-primary-hover"
+                  >
                     View Menu &rarr;
                   </Button>
                 </Link>
               </div>
             </div>
-            
-            <div className="relative mx-auto w-full max-w-lg lg:max-w-none flex justify-center lg:justify-end lg:pl-10">
-              <div className="relative w-[450px] h-[450px] md:w-[600px] md:h-[600px] lg:scale-110 lg:translate-x-12 z-10">
+
+            {/* Right — hero image on cream bg */}
+            <div className="relative flex w-full lg:w-1/2 items-center justify-center py-14 lg:py-0 overflow-visible">
+              {/* Circular image frame */}
+              <div className="relative h-85 w-85 rounded-full bg-[#e8e0cc] flex items-center justify-center overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80"
-                  alt="Delicious food plate"
+                  src="/foodio_design/top-right-corner.png"
+                  alt="Foodio hero dish"
                   fill
-                  className="object-cover rounded-full shadow-2xl shadow-primary/20"
+                  className="object-contain"
+                  sizes="340px"
                   priority
-                  sizes="(max-width: 768px) 100vw, 600px"
                 />
-                <div className="absolute bottom-10 -left-10 inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-white shadow-xl border border-foreground/5">
-                  <div className="p-2 bg-secondary rounded-full text-primary">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-foreground/60">Avg. Delivery</span>
-                    <span className="text-sm font-bold text-foreground">22 Minutes</span>
-                  </div>
+              </div>
+
+              {/* Floating badge — Today's Offer (top-right inside cream panel) */}
+              <div className="absolute top-10 right-6 flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
+                  <Flame className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted font-medium leading-none mb-0.5">Today&apos;s Offer</p>
+                  <p className="text-forest text-[13px] font-bold leading-tight">Free Delivery</p>
+                </div>
+              </div>
+
+              {/* Floating badge — Avg. Delivery (bottom-left, overlapping divider) */}
+              <div className="absolute bottom-10 -left-4 lg:-left-6 flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#ede9df] text-forest">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted font-medium leading-none mb-0.5">Avg. Delivery</p>
+                  <p className="text-forest text-[13px] font-bold leading-tight">22 Minutes</p>
                 </div>
               </div>
             </div>
@@ -86,67 +119,50 @@ export default function Home() {
       </section>
 
       {/* Curated Categories */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">Curated Categories</h2>
-            <p className="text-foreground/60">Explore our diverse menu of culinary delights.</p>
+      <section ref={menuSectionRef} className="py-25 bg-white">
+        <div className="mx-auto w-full max-w-310 px-6 md:px-10">
+          <div className="text-center mb-10">
+            <h2 className="font-serif font-bold mb-2 text-[clamp(1.7rem,2.6vw,2.3rem)] text-forest">
+              Curated Categories
+            </h2>
+            <p className="text-forest/55 text-[15px]">Explore our diverse menu of culinary delights.</p>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <Link href="/menu?category=starters" className="group flex flex-col items-center p-8 rounded-3xl bg-secondary hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all text-center">
-              <div className="h-16 w-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform shadow-soft">
-                <UtensilsCrossed className="h-8 w-8" />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-foreground">Starters</h3>
-            </Link>
-            <Link href="/menu?category=main" className="group flex flex-col items-center p-8 rounded-3xl bg-secondary hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all text-center">
-              <div className="h-16 w-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform shadow-soft">
-                <Coffee className="h-8 w-8" />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-foreground">Main Courses</h3>
-            </Link>
-            <Link href="/menu?category=desserts" className="group flex flex-col items-center p-8 rounded-3xl bg-secondary hover:bg-primary/5 border border-transparent hover:border-primary/10 transition-all text-center">
-              <div className="h-16 w-16 bg-primary text-white rounded-2xl flex items-center justify-center mb-4 group-hover:-translate-y-1 transition-transform shadow-soft">
-                <CakeSlice className="h-8 w-8" />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-foreground">Desserts</h3>
-            </Link>
+
+          <div className="flex items-stretch justify-center gap-14 max-w-xl mx-auto px-1">
+            {landingCategories.map((cat: LandingCategory, index: number) => {
+              const Icon = categoryIcons[index] ?? Utensils;
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategoryPick(cat.id)}
+                  className={`cursor-pointer flex flex-1 flex-col items-center gap-3 py-7 rounded-2xl border-2 transition-all duration-200 ${isActive
+                      ? "bg-[#eae5d6] border-[#c8bc99]"
+                      : "bg-[#f6f3ec] border-transparent hover:border-forest/15 hover:bg-[#f0ede4]"
+                    }`}
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-forest text-sm font-semibold">{cat.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Popular Items */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/50 border-t border-foreground/5">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-6">
-            <div>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">Popular Items</h2>
-              <p className="text-foreground/60">Our most ordered and highly rated dishes.</p>
-            </div>
-            <Link href="/menu" className="shrink-0">
-              <Button variant="outline">View Full Menu</Button>
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="animate-pulse flex flex-col rounded-2xl bg-white p-4 shadow-soft h-[380px]">
-                  <div className="h-48 w-full bg-secondary rounded-xl mb-4"></div>
-                  <div className="h-6 w-3/4 bg-secondary rounded-md mb-2"></div>
-                  <div className="h-4 w-full bg-secondary rounded-md mb-4"></div>
-                  <div className="h-10 w-full bg-secondary rounded-xl mt-auto"></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {popularItems.map((item) => (
-                <FoodCard key={item.id} item={item} />
-              ))}
-            </div>
-          )}
+      {/* Dish Cards */}
+      <section className="pb-24 md:px-10 bg-white">
+        <div
+          className={`grid grid-cols-1 px-5 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 max-w-350 mx-auto transition-all duration-180 ${
+            cardsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+          }`}
+        >
+          {visibleItems.map((item) => (
+            <LandingFoodCard key={item.id} item={item} />
+          ))}
         </div>
       </section>
     </div>

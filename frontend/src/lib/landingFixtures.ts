@@ -1,0 +1,152 @@
+import type { MenuItem } from "@/types";
+
+export interface LandingCategory {
+  id: string;
+  name: string;
+}
+
+export type LandingMenuItem = MenuItem;
+
+export const landingCategories: LandingCategory[] = [
+  { id: "starters", name: "Starters" },
+  { id: "main-courses", name: "Main Courses" },
+  { id: "desserts", name: "Desserts" },
+];
+
+const baseDescription = "Jumbo scallops with cauliflower puree and truffle oil.";
+const fixtureTimestamp = "2026-03-14T00:00:00.000Z";
+
+export const landingItems: LandingMenuItem[] = [
+  {
+    id: "starter-1",
+    name: "Golden Crunch Bites",
+    description: baseDescription,
+    price: 15.0,
+    image: "/foodio_design/Starters/Golden%20Crunch%20Bites.png",
+    categoryId: "starters",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "starter-2",
+    name: "Mediterranean Olive Medley",
+    description: baseDescription,
+    price: 25.0,
+    image: "/foodio_design/Starters/Mediterranean%20Olive%20Medley.png",
+    categoryId: "starters",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "starter-3",
+    name: "Citrus Swirl Delights",
+    description: baseDescription,
+    price: 35.0,
+    image: "/foodio_design/Starters/Citrus%20Swirl%20Delights.png",
+    categoryId: "starters",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "starter-4",
+    name: "Creamy Garlic Shrimp Pasta",
+    description: baseDescription,
+    price: 10.0,
+    image: "/foodio_design/Starters/Creamy%20Garlic%20Shrimp%20Pasta.png",
+    categoryId: "starters",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "main-1",
+    name: "Herb-Roasted Chicken Bowl",
+    description: baseDescription,
+    price: 18.0,
+    image: "/foodio_design/Main%20Courses/Herb-Roasted%20Chicken%20Bowl.png",
+    categoryId: "main-courses",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "main-2",
+    name: "Crispy Fire Bites",
+    description: baseDescription,
+    price: 20.0,
+    image: "/foodio_design/Main%20Courses/Crispy%20Fire%20Bites.png",
+    categoryId: "main-courses",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "main-3",
+    name: "Pan-Seared Scallops",
+    description: baseDescription,
+    price: 22.0,
+    image: "/foodio_design/Main%20Courses/Pan-Seared%20Scallops.png",
+    categoryId: "main-courses",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "main-4",
+    name: "Garden Herb Medley",
+    description: baseDescription,
+    price: 19.0,
+    image: "/foodio_design/Main%20Courses/Pan%20Seared%20Scallops.png",
+    categoryId: "main-courses",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "dessert-1",
+    name: "Tiramisu",
+    description: baseDescription,
+    price: 12.0,
+    image: "/foodio_design/Deserts/Tiramisu.png",
+    categoryId: "desserts",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "dessert-2",
+    name: "Signature Crunch Squares",
+    description: baseDescription,
+    price: 14.0,
+    image: "/foodio_design/Deserts/Signature%20Crunch%20Squares.png",
+    categoryId: "desserts",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "dessert-3",
+    name: "Pan-Seared Scallops",
+    description: baseDescription,
+    price: 16.0,
+    image: "/foodio_design/Deserts/Pan-Seared%20Scallops.png",
+    categoryId: "desserts",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+  {
+    id: "dessert-4",
+    name: "Pan Seared Scallops",
+    description: baseDescription,
+    price: 11.0,
+    image: "/foodio_design/Deserts/Pan%20Seared%20Scallops.png",
+    categoryId: "desserts",
+    available: true,
+    createdAt: fixtureTimestamp,
+    updatedAt: fixtureTimestamp,
+  },
+];

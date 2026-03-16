@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/axios";
-import { useAuth } from "@/contexts/AuthContext";
+import { ordersService } from "@/services/orders.service";
+import { useAuthStore, AuthState } from "@/stores/useAuthStore";
+import { useShallow } from "zustand/shallow";
 import { Order, OrderItem } from "@/types";
 import { Package } from "lucide-react";
 
@@ -10,17 +11,29 @@ import { Package } from "lucide-react";
 const STATUS_STEPS = ["PENDING", "PREPARING", "READY", "COMPLETED"];
 
 export default function OrdersPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, token, isLoading: authLoading } = useAuthStore(
+    useShallow((state: AuthState) => ({
+      user: state.user,
+      token: state.token,
+      isLoading: state.isLoading,
+    }))
+  );
+  const isAuthenticated = !!token && !!user;
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated || authLoading) return;
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      setOrders([]);
+      setIsLoading(false);
+      return;
+    }
 
     const fetchOrders = async () => {
       try {
-        const res = await api.get('/orders');
-        setOrders(res.data.data);
+        const data = await ordersService.getMyOrders();
+        setOrders(data);
       } catch (error) {
         console.error("Failed to fetch orders", error);
       } finally {
@@ -29,12 +42,12 @@ export default function OrdersPage() {
     };
 
     fetchOrders();
-  }, [isAuthenticated, authLoading]);
+  }, [authLoading, isAuthenticated]);
 
   // Loading Skeleton
   if (authLoading || isLoading) {
     return (
-      <div className="container mx-auto max-w-5xl px-4 py-8 md:py-16 flex-1">
+      <div className="mx-auto max-w-[1200px] px-6 py-10 flex-1">
         <div className="h-10 w-48 rounded bg-foreground/5 animate-pulse mb-8"></div>
         <div className="space-y-6">
           {[1, 2].map((i) => (
@@ -46,8 +59,8 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-8 md:py-16 flex-1">
-      <h1 className="font-serif text-3xl font-bold text-primary tracking-tight mb-8">My Orders</h1>
+    <div className="mx-auto max-w-[1200px] px-6 py-10 flex-1">
+      <h1 className="font-serif text-2xl font-bold text-foreground mb-6">My Orders</h1>
 
       {orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl bg-[#FAFAF9] py-20 text-center border border-foreground/5">
@@ -60,8 +73,6 @@ export default function OrdersPage() {
         <div className="space-y-6">
           {orders.map((order) => {
             const currentStepIndex = STATUS_STEPS.indexOf(order.status);
-            const isCancelled = order.status === "CANCELLED";
-
             // Format date strictly matching: "December 12th, 2025 at 4:33 PM"
             // Note: building a manual formatter to get the "th/st/nd/rd" suffix is tricky but we can format the main parts
             const d = new Date(order.createdAt);
@@ -84,35 +95,34 @@ export default function OrdersPage() {
             // Determine badge styles
             let badgeStyle = "bg-orange-100 text-orange-600 border-orange-200";
             if (order.status === "COMPLETED") badgeStyle = "bg-green-100 text-green-700 border-green-200";
-            else if (order.status === "CANCELLED") badgeStyle = "bg-red-100 text-red-600 border-red-200";
             else if (order.status === "READY") badgeStyle = "bg-blue-100 text-blue-600 border-blue-200";
 
             return (
               <div 
                 key={order.id} 
-                className="rounded-[20px] bg-[#FCFBF8] border border-foreground/10 px-6 py-8 md:px-8 shadow-sm flex flex-col"
+                className="rounded-[16px] bg-[#FBF7F2] border border-foreground/10 px-6 py-6 shadow-sm flex flex-col"
               >
                 {/* Header: Order Info on Left, Price/Status on Right */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-bold text-primary">Order #{order.id.slice(0, 8)}</h2>
-                    <p className="text-[15px] text-foreground/50 mt-1">Placed on {formattedDate}</p>
+                    <h2 className="text-sm font-bold text-foreground">Order #{order.id.slice(0, 8)}</h2>
+                    <p className="text-xs text-foreground/50 mt-1">Placed on {formattedDate}</p>
                   </div>
                   
-                  <div className="flex items-center gap-4">
-                    <span className="text-xl font-bold text-foreground">${Number(order.totalAmount).toFixed(2)}</span>
-                    <span className={`px-3 py-1 rounded-md text-sm font-medium border ${badgeStyle}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-foreground">${Number(order.totalAmount).toFixed(2)}</span>
+                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-medium border ${badgeStyle}`}>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                     </span>
                   </div>
                 </div>
 
                 {/* Items List */}
-                <div className="mt-8">
-                  <h3 className="text-[11px] font-bold tracking-[0.1em] text-foreground/40 uppercase mb-4">ITEMS</h3>
-                  <div className="space-y-3">
+                <div className="mt-5">
+                  <h3 className="text-[10px] font-bold tracking-[0.1em] text-foreground/40 uppercase mb-3">ITEMS</h3>
+                  <div className="space-y-2">
                     {order.items?.map((item: OrderItem) => (
-                      <div key={item.id} className="flex justify-between items-center text-[15px]">
+                      <div key={item.id} className="flex justify-between items-center text-[12px]">
                         <span className="font-medium text-foreground/80">{item.quantity}x {item.menuItemName}</span>
                         <span className="text-foreground/50">${Number(item.price * item.quantity).toFixed(2)}</span>
                       </div>
@@ -120,24 +130,23 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                <hr className="my-6 border-foreground/10" />
+                <hr className="my-4 border-foreground/10" />
 
                 {/* Total */}
-                <div className="flex justify-end mb-8">
-                  <span className="text-[15px] font-bold text-primary">
+                <div className="flex justify-end mb-6">
+                  <span className="text-[12px] font-bold text-foreground">
                     Total Amount : ${Number(order.totalAmount).toFixed(2)}
                   </span>
                 </div>
 
                 {/* Footer: Delivering to & Tracker */}
-                <div className="mt-auto flex flex-col lg:flex-row lg:items-center justify-between gap-8 gap-y-12">
-                  <p className="text-[15px] text-foreground/80">
+                <div className="mt-auto flex flex-col lg:flex-row lg:items-center justify-between gap-6 gap-y-10">
+                  <p className="text-[12px] text-foreground/80">
                     Delivering to: <span className="text-foreground/50">{order.address}</span>
                   </p>
 
                   {/* Status Tracker */}
-                  {!isCancelled && (
-                    <div className="w-full lg:w-[450px] px-4 self-center">
+                  <div className="w-full lg:w-[420px] px-4 self-center">
                       <div className="relative flex items-center justify-between">
                         {/* Connecting Line (Base) */}
                         <div className="absolute left-1 right-1 top-1/2 h-[2px] -translate-y-1/2 bg-foreground/10 z-0"></div>
@@ -169,7 +178,6 @@ export default function OrdersPage() {
                         })}
                       </div>
                     </div>
-                  )}
                 </div>
 
               </div>

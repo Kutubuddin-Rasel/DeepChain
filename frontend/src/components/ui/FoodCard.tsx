@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { MenuItem } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
-import { useCart } from "@/contexts/CartContext";
+import { useAuthStore, AuthState } from "@/stores/useAuthStore";
+import { useCartStore, CartState } from "@/stores/useCartStore";
+import { useShallow } from "zustand/shallow";
 
 interface FoodCardProps {
   item: MenuItem;
@@ -13,8 +15,15 @@ interface FoodCardProps {
 
 export function FoodCard({ item }: FoodCardProps) {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
+  const { user, token } = useAuthStore(
+    useShallow((state: AuthState) => ({
+      user: state.user,
+      token: state.token,
+    }))
+  );
+  const addToCart = useCartStore((state: CartState) => state.addToCart);
+  const isAuthenticated = !!token && !!user;
+  const detailsHref = `/menu/${item.id}`;
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -25,45 +34,42 @@ export function FoodCard({ item }: FoodCardProps) {
   };
 
   return (
-    <div className="group relative mt-16 flex flex-col rounded-[32px] bg-secondary p-6 pt-24 shadow-soft transition-all hover:-translate-y-1 hover:shadow-hover">
-      {/* Absolute positioned Circular Plate Image */}
-      <div className="absolute -top-16 left-6 h-40 w-40 overflow-hidden rounded-full shadow-lg transition-transform duration-500 group-hover:scale-105 border-4 border-white/50">
-        <Image
-          src={item.image || "/placeholder.png"}
-          alt={item.name}
-          fill
-          className="object-cover"
-          sizes="160px"
-        />
-        {!item.available && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
-            <span className="text-xs font-bold text-foreground">Out of Stock</span>
-          </div>
-        )}
+    <div className="relative flex flex-col rounded-3xl bg-[#FFF8EE] p-5 pt-16 shadow-soft">
+      <Link href={detailsHref} className="text-left">
+      <div className="absolute -top-10 left-5 h-24 w-24 rounded-full bg-white shadow-sm flex items-center justify-center">
+        <div className="relative h-21 w-21 overflow-hidden rounded-full">
+          <Image
+            src={item.image || "/placeholder.png"}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="84px"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col mt-2">
-        <h3 className="font-serif text-xl font-bold leading-tight text-foreground line-clamp-2 mb-2">
-          {item.name}
-        </h3>
-        
-        <p className="line-clamp-2 text-sm text-foreground/60 flex-1 mb-4 leading-relaxed">
+      <div className="flex flex-1 flex-col gap-2">
+          <h3 className="font-serif text-[17px] font-bold leading-tight text-foreground line-clamp-2 hover:text-primary transition-colors">
+            {item.name}
+          </h3>
+
+        <p className="line-clamp-2 text-sm text-foreground/60 leading-relaxed">
           {item.description}
         </p>
 
-        <div className="flex items-center justify-between pb-2 mt-auto">
-          <span className="font-sans text-2xl font-bold text-primary">
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-base font-bold text-foreground">
             ${Number(item.price).toFixed(2)}
           </span>
         </div>
       </div>
 
-      {/* Docked Add to Cart Button to match Figma */}
-      <div className="absolute bottom-0 right-0">
+      </Link>
+      <div className="mt-4 flex justify-end">
         <button
           onClick={handleAddToCart}
           disabled={!item.available}
-          className="flex items-center gap-2 rounded-tl-3xl rounded-br-[32px] bg-primary px-6 py-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+          className="cursor-pointer flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           Add to Cart <ShoppingCart className="h-4 w-4" />
         </button>

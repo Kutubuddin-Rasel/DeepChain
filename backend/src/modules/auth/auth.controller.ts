@@ -12,9 +12,9 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import type {
-  SafeUser,
   AuthUser,
   TokenResponse,
+  RegisterLoginResponse,
 } from '../interfaces/auth.interface';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -31,17 +31,20 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly cookieService: CookieService,
-  ) { }
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<SafeUser> {
+  ): Promise<RegisterLoginResponse> {
     const result = await this.authService.register(registerDto);
     this.cookieService.setRefreshCookie(res, result.refreshToken);
-    return result;
+    return {
+      user: result.user,
+      accessToken: result.accessToken,
+    };
   }
 
   @Post('login')
@@ -49,10 +52,13 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<SafeUser> {
+  ): Promise<RegisterLoginResponse> {
     const result = await this.authService.login(loginDto);
     this.cookieService.setRefreshCookie(res, result.refreshToken);
-    return result;
+    return {
+      user: result.user,
+      accessToken: result.accessToken,
+    };
   }
 
   @Post('refresh')
@@ -60,7 +66,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshTokens(
     @CurrentUser() user: RefreshTokenPayload,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<TokenResponse> {
     const { accessToken, refreshToken } =
       await this.authService.refreshTokens(user);

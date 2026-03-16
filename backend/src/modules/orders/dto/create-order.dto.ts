@@ -1,8 +1,8 @@
 import {
   ArrayMinSize,
   IsArray,
+  IsInt,
   IsNotEmpty,
-  IsNumber,
   IsString,
   IsUUID,
   Min,
@@ -16,7 +16,8 @@ export class OrderItemDto {
   readonly menuItemId: string;
 
   @IsNotEmpty({ message: 'Quantity is required' })
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt({ message: 'Quantity must be an integer' })
   @Min(1, { message: 'Quantity must be at least 1' })
   readonly quantity: number;
 }

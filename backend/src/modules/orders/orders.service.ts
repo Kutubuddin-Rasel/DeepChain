@@ -34,14 +34,6 @@ const ORDER_INCLUDE = {
   },
 } as const;
 
-// Valid status transitions: PENDING→PREPARING→READY→COMPLETED
-const VALID_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.PENDING]: [OrderStatus.PREPARING],
-  [OrderStatus.PREPARING]: [OrderStatus.READY],
-  [OrderStatus.READY]: [OrderStatus.COMPLETED],
-  [OrderStatus.COMPLETED]: [],
-};
-
 @Injectable()
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
@@ -181,15 +173,6 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException(`Order with ID "${id}" not found`);
-    }
-
-    // Validate status transition
-    const allowedTransitions = VALID_STATUS_TRANSITIONS[order.status];
-    if (!allowedTransitions.includes(updateStatusDto.status)) {
-      throw new BadRequestException(
-        `Cannot transition from "${order.status}" to "${updateStatusDto.status}". ` +
-          `Allowed transitions: ${allowedTransitions.length > 0 ? allowedTransitions.join(', ') : 'none (order is completed)'}`,
-      );
     }
 
     return this.prisma.order.update({

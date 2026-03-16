@@ -1,14 +1,26 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AllExceptionFilter } from './common/filters/all-exceptions.filter';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
   app.setGlobalPrefix('api/v1');
+  app.use(cookieParser());
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.url.includes('/menu-items')) {
+      console.log(`[REQ] ${req.method} ${req.url}`);
+      console.log('HEADERS:', req.headers);
+      console.log('BODY:', req.body);
+    }
+    next();
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -23,16 +35,22 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionFilter());
 
+  const frontendOrigins = configService
+    .getOrThrow<string>('FRONTEND_URL')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000',
+    origin: frontendOrigins.length === 1 ? frontendOrigins[0] : frontendOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  const port = configService.get<number>('PORT') ?? 3001;
+  const port = configService.get<number>('PORT') ?? 3000;
   await app.listen(port);
-  console.log(`🍽️  Foodio API running on http://localhost:${port}/api/v1`);
+  console.log(`🍽️  Foodio API running on port ${port}`);
 }
 
 bootstrap();

@@ -7,14 +7,15 @@ import { CacheOptions } from '../interfaces/redis.interface';
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private redis: Redis;
   private isConnected = false;
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   onModuleInit() {
     try {
-      this.redis = new Redis({
-        host: this.configService.get<string>('REDIS_HOST'),
-        port: this.configService.get<number>('REDIS_PORT'),
-        password: this.configService.get<string>('REDIS_PASSWORD'),
+      const redisUrl = this.configService.get<string>('REDIS_URL');
+      this.redis = new Redis(redisUrl, {
+        tls: {
+          rejectUnauthorized: false,
+        }
       });
 
       this.redis.on('error', (error) => {
